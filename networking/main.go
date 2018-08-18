@@ -3,9 +3,15 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"log"
+	"net"
+	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/joho/godotenv"
 )
 
 // block - items in a blockchain
@@ -23,6 +29,8 @@ type Heartrate struct {
 type Blockchain []Block
 
 var mutex = &sync.Mutex{}
+
+var btChan chan []Block
 
 var blockchain Blockchain
 
@@ -64,11 +72,51 @@ func isBlockvalid(newBlock, oldBlock Block) bool {
 sol: the longest - its up to date..assuming
 */
 func replaceChain(newBlocks []Block) {
+	mutex.Lock()
 	if len(blockchain) < len(newBlocks) {
 		blockchain = newBlocks
 	}
+	mutex.Unlock()
+	spew.Dump(blockchain)
 	return
 }
 func main() {
+	//channel to handle incoming concurrent blocks
+	btChan = make(chan []Block)
+	//load env
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error:", err)
+	}
 
+	//lets create a genesis block
+	t := time.Now()
+	//genesisBlock := Block{}
+	genesisBlock := Block{Index: 0, Timestamp: t.String(), BPM: 0, PrevHash: ""}
+	genesisBlock.Hash = calculateHash(genesisBlock)
+	blockchain = append(blockchain, genesisBlock)
+	spew.Dump(blockchain)
+	createTcpServer()
+
+}
+
+func createTcpServer() {
+	tcpPort, ok := os.LookupEnv("PORT")
+	if !ok {
+		tcpPort = "9999"
+	}
+	s, err := net.Listen("tcp", ":"+tcpPort)
+	if err != nil {
+		log.Fatal("ERROR", err)
+	}
+	defer s.Close()
+
+	//lets make infinite loop to handle connections
+	for {
+		conn, err := s.Accept()
+		if err != nil {
+			log.Fatal("ERROR:", err)
+		}
+		go handleTcpConn(conn)
+	}
 }
