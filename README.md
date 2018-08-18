@@ -8,7 +8,7 @@ This is my attempt for learning how blockchain works using [Golang](https://gola
 ## Concepts To Learn
 
 + [x] [Basic Prototype](https://github.com/jakhax/blockchain-with-go/tree/master/basic-prototype) - blockchain simple structure
-+ [ ] [Networking]() - simple blockchain network without decentralization
++ [x] [Networking](https://github.com/jakhax/blockchain-with-go/tree/master/networking) - simple blockchain network without decentralization
 + [ ] Proof of work
 + [ ] Peer to Peer network - with decentralization.
 + [ ] Proof of Stake
